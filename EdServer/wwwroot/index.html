@@ -1,0 +1,62 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?skin=desert"></script>
+    <link rel="stylesheet" type="text/css" href="css/site.css">
+    <script>
+        let socket = null;
+        
+        function toggleConnection() {
+            if (socket == null) {
+                connect();
+            } else {
+                closeConnection();
+            }
+        }
+
+        function connect() {
+            const url = 'ws://' + location.host + "/ws";
+            socket = new WebSocket(url);
+
+            socket.addEventListener('open', function(event) {
+                connectUrl.innerText = 'Connected to ' + url;
+                connectButton.innerText = 'Disconnect';
+            });
+            socket.addEventListener('message', function(event) {
+                const lines = event.data.split('\n');
+                for (const line of lines) {
+                    addMessage(line);
+                }
+            });
+            socket.addEventListener('close', function(event) {
+                connectUrl.innerText = '';
+                connectButton.textContent = 'Connect';
+            })
+        }
+        
+        function closeConnection() {
+            socket.close(1000, 'Closed by user');
+            socket = null;
+        }
+
+        function addMessage(log) {
+            const fmtLog = JSON.stringify(JSON.parse(log),null,'\t')
+            const logParagraph = document.createElement('pre');
+            logParagraph.innerText = fmtLog;
+            logParagraph.className = 'prettyprint lang-js';
+            logsContainer.appendChild(logParagraph);
+            PR.prettyPrint();
+        }
+    </script>
+</head>
+<body>
+    <div>
+        <button class="btn" onclick="toggleConnection()" id="connectButton">Connect</button>
+        <span id="connectUrl"></span>
+    </div>
+    <h3>Logs</h3>
+    <div id="logsContainer"></div>
+</body>
+</html>
